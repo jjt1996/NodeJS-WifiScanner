@@ -1,0 +1,26 @@
+{
+  "name": "Jacks_Wifi_Mapper",
+  "version": "1.0.0",
+  "description": "Realtime wifi mapping",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^8.2.1",
+    "electron-rebuild": "^1.10.1"
+  },
+  "dependencies": {
+    "electron-reload": "^1.5.0",
+    "gps": "^0.5.3",
+    "log4js": "^6.1.2",
+    "node-wifi-scanner": "^1.1.2-np",
+    "papaparse": "^5.2.0",
+    "python-shell": "^1.0.7",
+    "read-last-lines": "^1.7.2",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.5",
+    "serialport": "^8.0.7"
+  }
+}
