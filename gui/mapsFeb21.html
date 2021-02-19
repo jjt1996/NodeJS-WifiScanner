@@ -1,0 +1,834 @@
+<html>
+<head>
+
+
+
+
+
+<script> navigator.geolocation.getCurrentPosition(function(position) {      				// start of code from https://stackoverflow.com/questions/7463367/how-to-call-function-when-user-allows-or-denies-access-to-physical-location
+    alert('allow');
+}, function() {
+    alert('deny');	
+});																						// end of code from https://stackoverflow.com/questions/7463367/how-to-call-function-when-user-allows-or-denies-access-to-physical-location
+</script>
+
+
+
+							
+</head>
+
+
+
+
+
+
+<body>
+   <button class="btn btn-info"><a style="color:black" href="gui.html">< Back</a></button>
+
+   <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCxFzWNiEgeRdr51Y6al3U9XiZ6yjYlxbE&callback=initMap">
+   </script>
+
+
+
+   <script async defer>
+   //var Long
+   //var Lat
+   var map;
+   var marker;
+   
+   var SignalMarked
+   var gmarkers = [];
+
+   var iconBase = '/home/pi/Desktop/PI_App/gui/Icons/';   // location of files used to create custom markers - sourced from https://developers.google.com/maps/documentation/javascript/custom-markers
+
+   const SerialPort = require("serialport");
+
+   const GPS = require("gps");
+
+   const Readline = require("@serialport/parser-readline");
+
+   const gpsInfo = {};
+
+   const port = new SerialPort("/dev/ttyAMA0");
+
+
+
+   const parser = port.pipe(new Readline({ delimiter: "\n" }));
+
+
+
+   const gps = new GPS();
+
+
+
+   gps.on("data", function(data) {
+
+     try {
+
+       if (data.type === "GGA") {
+
+         gpsInfo.lat = data.lat || gpsInfo.lat;
+
+         gpsInfo.lon = data.lon || gpsInfo.lon;
+
+         gpsInfo.speed = data.speed || gpsInfo.speed;
+
+         gpsInfo.time = data.time.toString() || gpsInfo.time;
+       //  console.log(gpsInfo.lat)
+	// console.log(gpsInfo.lon)
+         Long = gpsInfo.lon
+
+         Lat = gpsInfo.lat
+
+
+       }
+
+     } catch (e) {
+
+       console.log(
+
+         "Exception raised while getting data from GPS",
+
+         JSON.stringify(e)
+
+       );
+
+     }
+
+   });
+
+
+
+   parser.on("data", function(data) {
+
+     try {
+
+       gps.update(data);
+
+     } catch (e) {
+
+       console.log(
+
+         "Exception raised while getting data from Serialport parser",
+
+         JSON.stringify(e)
+
+       );
+
+     }
+
+   });
+   
+   function initMap() {	
+      
+      myLat = Lat
+      myLong = Long	
+     
+      console.log("Lat: " + myLat)
+      console.log("Long: " + myLong)   
+
+   							<!-- start of code from https://www.youtube.com/watch?v=xJubVipcHrM&t=186s -->
+      x = navigator.geolocation;
+
+      x.getCurrentPosition(success, failure);
+
+      function success(position)
+
+      {
+             // var fs = require('fs');										//start of code inspired by https://www.freecodecamp.org/forum/t/how-to-read-local-text-file-into-a-js/231112 AdityaVT -->
+
+	    //  var textByLine = fs.readFileSync('/home/pi/Desktop/location.txt').toString().split("\n")         // end of code ^^ 
+	    //  myLong = textByLine.val().search(Long)
+	    //  myLat = textByLine.val().search(Lat)
+	     // console.log(myLat + " " + myLong)
+
+
+
+
+
+
+		// console.log(textByLine)
+	      //const readLastLines = require('read-last-lines');							// code from https://www.npmjs.com/package/read-last-lines - adapted to get the last line written to location.txt to get my GPS co-ordinates
+
+            //  readLastLines.read('/home/pi/Desktop/location.txt', 1)							
+
+            //     .then((lines) => myLong = lines.search(Long))								// old code .toString().replace(/[^\d.-]/g, '')
+                // .then((lines) => myLat = lines.search(Lat))
+	      
+
+              //console.log(myLong)
+												
+	      //myString = textByLine.toString().replace(/[^\d.-]/g, '')					// end of code from https://www.npmjs.com/package/read-last-lines
+	      //console.log(myString)
+	     // var myLat = position.coords.latitude;
+	     // var myLong = position.coords.longitude;
+	     // console.log(myLat)
+             // console.log(myLong)
+	      //alert(myLat);
+
+	      //var coords = new google.maps.LatLng(Lat,Long);
+              //console.log(coords)
+
+	      var coords = new google.maps.LatLng(myLat,myLong);
+
+
+
+	      var mapOptions = {
+
+
+
+		      zoom:18,
+
+		      center: coords,
+
+		      mapTypeId: google.maps.MapTypeId.HYBRID   					<!-- 4 map options, ROADMAP, SATELITE, HYBRID, TERRAIN r-->
+
+		      }
+
+		
+
+		      map = new google.maps.Map(document.getElementById("map"), mapOptions);
+                      map.markers = [];
+                      icon: iconBase + 'PersonIcon.png',
+		      marker = new google.maps.Marker({map:map, position:coords, icon: iconBase + 'PersonIcon.png'});	
+                      updateMap();
+                      //TestMarker();
+
+	      }
+
+	      function failure(){ }
+
+             } // close function here	 <! End of code from https://www.youtube.com/watch?v=xJubVipcHrM&t=186s -->
+
+
+
+
+   function updateMap() {
+
+       myLat = Lat
+
+       myLong = Long
+       console.log(myLat + " " + myLong)
+       var newLatLng = new google.maps.LatLng(myLat,myLong);
+       icon: iconBase + 'PersonIcon.png',
+       marker.setPosition(newLatLng);
+      // infowindow.setPosition(marker.getPosition());
+      
+       setTimeout(updateMap, 2000);             //recusively run the function every 2 seconds. This way the map is updating the marker to my location every 2 seconds .
+
+   };
+
+   </script>
+
+
+       <div id="map" style="width: 100%; height: 50%;"></div>
+
+
+
+
+
+
+
+
+
+
+<h2>Scanner Info</h2>
+
+<p id="Scan">Click the button to scan for WI-FI</p>
+
+ <button onclick="ScanWifi()">Start Scan</button>  <button onclick="StopScan()">StopScan</button>
+
+       <div id="scanner" style="width: 100%; height: 50%;">
+
+
+
+
+
+
+
+   <script>
+   var object1 = [];
+   var cancel = 0;											// creates global variable that is used to check if the stop button is clicked
+   var arrayLength;
+   var counter = 0;
+   var ArrayExists;
+  // var Signals = {};
+   var NetworkArray = [];
+   var scanCounter = 0					// Used to point to longitude and latitude values at the correct point
+   var LongArray = [];                                  // Used to store Longitutes in an array
+   var LatArray = [];                                    // Used to store Latitudes in an array
+   var SignalIndex
+   var marker
+
+											
+   
+   function StopScan() {										// sets cancel to 1 if Stop is clicked
+      cancel = 1
+   }
+
+
+   var sudo = require('sudo-prompt');
+   var options = {
+     name: 'Electron',
+     icns: '/Applications/Electron.app/Contents/Resources/Electron.icns', // (optional)
+   };
+   sudo.exec('ScanWifi()',options,
+	function(error, stdout, stderr) {
+	   //if (error) throw error;
+	   console.log('stdout: ' + stdout);
+	}
+  );
+
+
+
+
+   function ScanWifi() {
+      console.log(cancel)
+      const scanner = require('node-wifi-scanner');   							// start of code from https://www.npmjs.com/package/node-wifi-scanner 
+      scanner.scan((err, networks) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+	console.log(networks);  // displays all WIFI 							// end of code from https://www.npmjs.com/package/node-wifi-scanner 
+
+
+										// Passes the networks array to the SignalsData function
+	
+	
+	var nets = [];											// creation of new array to hold data we want to use from the networks array
+        arrayLength = networks.length								// loops through the network array, pulling out and displaying the SSID for each network inside the console
+        for (var i = 0; i < arrayLength; i++) {
+          // document.write(networks[i].ssid, networks[i].rssi); 					// outputs SSID value in console of each element in networks array
+           nets[i] = "SSID: " + networks[i].ssid + " - " + networks[i].mac + " - " + "Signal strength" + networks[i].rssi + '<br />';
+	   // alert(nets.join("%"));
+           
+	      document.getElementById("scanner").innerHTML=nets						// updates the part of the HTML after the Scanner header, with the text from the Nets array created. Lists the SSID and RSSI of scanned networks
+	      	
+        }
+
+    	
+      
+
+      if (cancel == 0) {										// if cancel value is 0, the stop button hasnt been clicked, so continue to loop every second
+         SignalData(networks)	
+	 setTimeout(ScanWifi, 5000);   									// Repeats the Scan function every 1000 miliseconds (1 second)  
+         }
+      if (cancel == 1) {										// Resets the state of the scanner function, so if the start button is clicked the stop button doesnt overwrite its loop function
+         cancel = 0 											// The stop button has been clicked, stopping the loop. To allow the loop to function correctly if the start button is pressed, the value is reset.
+         }
+      })
+   };
+
+   
+
+
+
+
+
+
+   function SignalData(arr) {							//passes the networks array into this method. arr tells the function that the parameter passed is an array
+
+
+ //  const SerialPort = require("serialport");
+
+  // const GPS = require("gps");
+
+  // const Readline = require("@serialport/parser-readline");
+
+ //  const gpsInfo = {};
+
+  // const port = new SerialPort("/dev/ttyAMA0");
+
+
+
+  // const parser = port.pipe(new Readline({ delimiter: "\n" }));
+
+
+
+   //const gps = new GPS(); 
+
+    
+
+
+
+
+   gps.on("data", function(data) {
+
+     try {
+
+       if (data.type === "GGA") {
+
+         gpsInfo.lat = data.lat || gpsInfo.lat;
+
+         gpsInfo.lon = data.lon || gpsInfo.lon;
+
+         gpsInfo.speed = data.speed || gpsInfo.speed;
+
+         gpsInfo.time = data.time.toString() || gpsInfo.time;
+         console.log(gpsInfo.lat)
+	 console.log(gpsInfo.lon)
+         Long = gpsInfo.lon
+         Lat = gpsInfo.lat
+
+         LongArray.push(Long)
+         LatArray.push(Lat)
+
+         console.log("LAT" + LatArray)
+         console.log("LONG" + LongArray)
+
+       }
+
+     } catch (e) {
+
+       console.log(
+
+         "Exception raised while getting data from GPS",
+
+         JSON.stringify(e)
+
+       );
+
+     }
+
+   });
+
+
+
+   parser.on("data", function(data) {
+
+     try {
+
+       gps.update(data);
+
+     } catch (e) {
+
+       console.log(
+
+         "Exception raised while getting data from Serialport parser",
+
+         JSON.stringify(e)
+
+       );
+
+     }
+
+   });
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	console.log("COUNTER " + counter)
+	
+  	//for (i=0; i < arr.length; i++) {
+    		//console.log(arr[i])
+  	//}
+
+	
+	console.log(arr)
+
+	if (counter == 0) {							// Checks to see if the Signals array already exists or is empty
+		ArrayExists = false;
+        }
+	if (counter > 0) {
+		ArrayExists = true;
+
+	}
+
+	console.log(ArrayExists)	
+
+
+// THIS NEEDS TO BE CHANGED   - it does not account for new networks being discovered. ie it needs to check if a new network is added, and give it an object to store data too.
+
+		
+	if (ArrayExists == false) {						// Creates a onject for each Network found, The objects are names using the network names
+		for (var i = 0; i < arr.length; i++) {
+			SSID = arr[i].ssid + "_" + arr[i].mac
+		        LongArray.push(Long);
+                        LatArray.push(Lat);
+
+			object1[i] ={
+				number: [i],					//assigns a number to each network found
+				name: SSID,
+				RSSI: [ arr[i].rssi ],
+                                Longitude: [ LongArray[i] ],
+                                Latitude: [ LatArray[i] ] 
+			};
+		
+		}
+		console.log(object1)	
+               // console.log("LONG ARRAY" + LongArray)
+               // console.log("LAT ARRAY" + LatArray)
+	}
+
+	
+
+
+
+//THIS CODE WORKS FIX ABOVE
+	if (ArrayExists == true) {	
+		for (var i = 0; i < arr.length; i++) {	
+			networkToMatch = arr[i].ssid + "_" + arr[i].mac				// Combines the MAC address and SSID to create a unique identifier for each Access point
+			console.log(networkToMatch)					
+			
+			let result = object1.filter(obj => {					//https://stackoverflow.com/questions/13964155/get-javascript-object-from-array-of-objects-by-value-of-property elclanrs insipred this snippet
+  				return obj.name == networkToMatch				//searches all objects created for one that matches the signal data recived from netscan
+				
+			})
+			console.log(result)
+
+
+			if (result == null ) {							//THIS LOOP ISNT BEING ACCESSED. FIX!
+				console.log("NULL OBJECT")
+				//nextElement = object1
+				for (var i = 0; i < arr.length; i++) {
+					SSID = arr[i].ssid + "_" + arr[i].mac
+		                        LongArray.push(Long);
+                                        LatArray.push(Lat);
+
+
+		
+					object1[i] ={
+						number: [i],					//assigns a number to each network found
+						name: SSID,
+						RSSI: [ arr[i].rssi ],
+                                                Longitude: [ arr[i].LongArray[i] ],
+                                                Latitude: [ arr[i].LatArray[i] ]
+
+					};
+					networkToMatch = arr[i].ssid + "_" + arr[i].mac				// Combines the MAC address and SSID to create a unique identifier for each Access point
+					console.log(networkToMatch)					
+			
+					let result = object1.filter(obj => {					//https://stackoverflow.com/questions/13964155/get-javascript-object-from-array-of-objects-by-value-of-property elclanrs insipred this snippet
+  						return obj.name == networkToMatch				//searches all objects created for one that matches the signal data recived from netscan
+				        })
+                                }
+				
+			} else {
+				console.log("?????")	
+
+
+
+
+			}
+			
+			console.log(object1)					
+			console.log("OUTER LOOP RESULT " + result)
+			
+                        
+                        if (result[0] == "undefined"){
+			   console.log("network not scanned")
+                        } else if (typeof result[0] !== "undefined"){
+
+
+
+			   NetworkNumber = result[0].number						// grabs the unique network number 
+			   console.log(result[0].number)							// end of snippet
+			
+			   object1[NetworkNumber].RSSI.push(arr[i].rssi)					//find the object related to the SSID we searched for, then pushed the RSSI for this network to the RSSI array inside this object
+                           object1[NetworkNumber].Longitude.push(LongArray[i])
+                           object1[NetworkNumber].Latitude.push(LatArray[i])	
+                        }
+
+
+                        if (object1[NetworkNumber].RSSI.length >= 3){
+                        var LastRssi = object1[NetworkNumber].RSSI.slice(object1[NetworkNumber].RSSI.length - 3, object1[NetworkNumber].RSSI.length)
+                        console.log(LastRssi)
+                        var RssiValue = true
+
+                        }
+                        if (object1[NetworkNumber].Longitude.length >= 3){
+                        var LastLong = object1[NetworkNumber].Longitude.slice(object1[NetworkNumber].Longitude.length - 3, object1[NetworkNumber].Longitude.length)
+                        console.log(LastLong)
+                        var LongValue = true
+
+                        }
+                        if (object1[NetworkNumber].Latitude.length >= 3){
+                        var LastLat = object1[NetworkNumber].Latitude.slice(object1[NetworkNumber].Latitude.length - 3, object1[NetworkNumber].Latitude.length)
+                        console.log(LastLat)
+                        var LatValue = true;
+                        }		 
+                        
+                        if (RssiValue == true && LongValue == true && LatValue == true){
+                           var index = NetworkArray.indexOf(NetworkNumber);
+                           if (index !== -1){
+                              SignalIndex = index
+                              console.log("INDEX" + index)
+                              
+                              gmarkers.splice(index,1);
+                              gmarkers.push(networkNumber);
+
+                              NetworkArray.splice(index, 1);
+                              NetworkArray.push(NetworkNumber)  
+                           }
+
+
+                           console.log("NETWORK ARRAY" + NetworkArray)                     
+                           var Weight1 = Math.pow(parseFloat(LastRssi[0]), 2) / (Math.pow(parseFloat(LastRssi[0]), 2) + Math.pow(parseFloat(LastRssi[1]), 2) + Math.pow(parseFloat(LastRssi[2]), 2))
+                           console.log("WEIGHT = " + Weight1)
+                           var Weight2 = Math.pow(parseFloat(LastRssi[1]), 2) / (Math.pow(parseFloat(LastRssi[0]), 2) + Math.pow(parseFloat(LastRssi[1]), 2) + Math.pow(parseFloat(LastRssi[2]), 2))
+                           console.log("WEIGHT2 = " + Weight2)
+                           var Weight3 = Math.pow(parseFloat(LastRssi[2]), 2) / (Math.pow(parseFloat(LastRssi[0]), 2) + Math.pow(parseFloat(LastRssi[1]), 2) + Math.pow(parseFloat(LastRssi[2]), 2))
+                           console.log("WEIGHT3 = " + Weight3)
+
+                           EstLong = (LastLong[0] * Weight1) + (LastLong[1] * Weight2) + (LastLong[2] * Weight3)
+                           EstLat = (LastLat[0] * Weight1) + (LastLat[1] * Weight2) + (LastLat[2] * Weight3)
+                           var EstLatLng = {lat: EstLat, lng: EstLong};
+                     
+                           console.log(EstLatLng)      
+                           //console.log(EstLat+ " " + EstLat)
+
+                           //var WifiMarker 
+                           
+                           WifiMarker = new google.maps.LatLng(EstLat, EstLong);
+
+                           
+                           if (SignalMarked == true){
+                              WifiMarker = null
+                              TestMarker(WifiMarker, NetworkNumber);
+                              console.log("Maker exists for : " + NetworkNumber)
+                              console.log("Marker removed")
+
+
+                           }
+                           else {
+                           console.log("No Marker for : " + NetworkNumber)
+                           TestMarker(WifiMarker, NetworkNumber);
+                           //SignalMarked = true;
+                           }
+
+                           
+                        }      
+
+		}
+
+	}
+
+	
+
+    // Testing the addMarker function inspired by https://stackoverflow.com/questions/7701077/add-marker-function-with-google-maps-api -Harsh Baid
+
+    function TestMarker(WifiMarker, i) {
+
+           SignalMarker = WifiMarker
+
+           addMarker(SignalMarker, i)
+
+    }
+
+		
+    // Function for adding a marker to the page.   by https://stackoverflow.com/questions/7701077/add-marker-function-with-google-maps-api - Harsh Baid
+
+    function addMarker(location, i) {
+        console.log("ADD MARKER FUNCTION" + i)
+        
+        marker[i] = new google.maps.Marker({
+
+            position: location,
+
+            map: map,
+            icon: iconBase + 'Wifi-Icon.png'
+
+        });
+       // console.log("This marker is: " + index)
+
+    }
+ 
+
+ // Sets the map on all markers in the array.
+   function setMapOnAll(map) {
+     
+      gmarkers.setMap(map);
+     
+   }
+
+// Removes the markers from the map, but keeps them in the array.
+   function clearMarkers(index) {
+     setMapOnAll[index](null);
+   } 
+
+
+ 
+
+			
+		
+
+			
+		//	if (networkToMatch == object1.name[i]) {
+		//		object1.RSSI.push(arr[i].rssi);
+		//	}
+		//	else {
+		//		console.log("Network doesnt exist in list")
+		//	}
+			
+//		}
+			
+			
+		console.log(object1)	
+
+//	}
+	
+
+
+
+						//object1['RSSI' + arr[i].rssi] = 4;
+
+
+	//console.log(Signals)
+
+
+	counter = counter + 1
+
+        scanCounter ++
+        console.log("SCAN COUNTER: " + scanCounter)
+   }
+
+
+	
+   </script></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- comment this out
+
+
+//	if (ArrayExists == true) {
+//		for (var i = 0; i < arr.length; i++) {								// Creates a new array of 5 elements for each signal recived (If there are 20 networks found, 20 arrays etc.)
+//			//Signals[i] = new Array()
+//
+//			console.log("Where in my array " + Signals[i].indexOf(arr[i].ssid))
+//			if (Signals[i].indexOf(arr[i].ssid) > -1 && Signals[i].indexOf(arr[i].mac)) {		//if the SSID and MAC address of the networks array are in the signals array, push the RSSI relating to that network inside SIGNALS array
+//				console.log("SSID" + Signals[i].indexOf(arr[i].ssid))				//display where the SSID is within the array (should be 0 for each array as its the 1st value)
+//				console.log("MAC: " + arr[i].mac + Signals[i].indexOf(arr[i].mac))		//display where the MAC is within the array (should be 1 for each array as its the 2nd value)
+//				console.log(Signals[i][0])
+//				console.log(Signals[i][1])
+//				console.log("In Nets Array")
+//				Signals[i].push(arr[i].rssi);
+//					
+//			}
+//			else {
+//				console.log("Not in Nets Array")
+//				for (var i = Signals.length; i < arr.length; i++) {								// Creates a new array of 5 elements for each signal recived (If there are 20 networks found, 20 arrays etc.)
+//					Signals[i] = new Array()								// The elments will later be used to store 5 RSSI, to calulate estimate location of signal origin.
+//					Signals[i].push(arr[i].ssid);
+//					Signals[i].push(arr[i].mac);
+//					Signals[i].push(arr[i].rssi);
+//				}
+//			}
+//
+//			//console.log("Length = " + arr.length)
+//			//Signals[i].push(arr[i].rssi);
+//			//console.log("TEST" + arr[i].rssi)
+//
+//		}	
+//	}
+//	if (ArrayExists == false) { 
+//		Signals = new Array()									// JS doesnt support Multi-dimensional arrays http://www.exforsys.com/tutorials/javascript/javascript-two-dimensional-arrays.html
+//		for (var i = 0; i < arr.length; i++) {								// Creates a new array of 5 elements for each signal recived (If there are 20 networks found, 20 arrays etc.)
+//			Signals[i] = new Array()								// The elments will later be used to store 5 RSSI, to calulate estimate location of signal origin.
+//			Signals[i].push(arr[i].ssid);
+//			Signals[i].push(arr[i].mac);
+//			Signals[i].push(arr[i].rssi);
+//			ArrayExists = true 
+//			//Signals[i].push(arr[i].ssid);
+//		}
+//	
+//	}
+	
+
+// NEED TO SEARCH THE Networks ARRAY and Signals ARRAY BY SSID+MAC TO FIND ELEMENT IN ARRAY THAT NEEDS TO BE ALTERED, ELSE THE DATA STORED DOES NOT MATCH UPTO THE CORRECT NETWORK.
+
+
+
+
+
+//	console.log(Signals)
+
+
+//	counter = counter + 1
+
+
+//   }
+
+
+	
+//   </script></div>
+
+
+
+
+
+
+
+   <script> 
+
+   wigle_username = 'AID3c3403094b7a839e2ca3eb942f432d20'    //located from https://wigle.net/account
+   wigle_password = '08df27f6bccd0fd125140ebfbc5eebc3'
+
+-->
+
+   </script>
+
+
+
+
+
+
+
+
+
+
+   <script>
+   
+
+
+
+   </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,271 @@
+<html>
+<head>
+
+
+
+
+
+<script> navigator.geolocation.getCurrentPosition(function(position) {      				// start of code from https://stackoverflow.com/questions/7463367/how-to-call-function-when-user-allows-or-denies-access-to-physical-location
+    alert('allow');
+}, function() {
+    alert('deny');	
+});													// end of code from https://stackoverflow.com/questions/7463367/how-to-call-function-when-user-allows-or-denies-access-to-physical-location
+</script> 								
+</head>
+
+<body>
+   <button class="btn btn-info"><a style="color:black" href="gui.html">< Back</a></button>
+
+   <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCxFzWNiEgeRdr51Y6al3U9XiZ6yjYlxbE&callback=initMap">
+   </script>
+
+   <script async defer>
+   function initMap() {											<!-- start of code from https://www.youtube.com/watch?v=xJubVipcHrM&t=186s -->
+      x = navigator.geolocation;
+
+      x.getCurrentPosition(success, failure);
+
+      function success(position)
+
+      {
+	      var myLat = position.coords.latitude;
+	      var myLong = position.coords.longitude;
+	      console.log(myLat)
+              console.log(myLong)
+	      //alert(myLat);
+
+	      var coords = new google.maps.LatLng(myLat,myLong);
+
+	      var mapOptions = {
+
+		      zoom:11,
+		      center: coords,
+		      mapTypeId: google.maps.MapTypeId.HYBRID   					<!-- 4 map options, ROADMAP, SATELITE, HYBRID, TERRAIN r-->
+		      }
+		
+		      var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+		      var marker = new google.maps.Marker({map:map, position:coords});	
+	      }
+
+	      function failure(){ }
+
+             } // close function here									<! End of code from https://www.youtube.com/watch?v=xJubVipcHrM&t=186s -->
+       </script>
+
+
+       <div id="map" style="width: 100%; height: 50%;"></div>
+
+
+
+
+
+
+
+
+
+
+<h2>Scanner Info</h2>
+
+<p id="Scan">Click the button to scan for WI-FI</p>
+
+ <button onclick="ScanWifi()">Start Scan</button>  <button onclick="StopScan()">StopScan</button>
+
+       <div id="scanner" style="width: 100%; height: 50%;">
+
+
+
+
+
+
+
+   <script>
+   var cancel = 0;											// creates global variable that is used to check if the stop button is clicked
+   var arrayLength;
+   var counter = 0;
+   var ArrayExists;
+  // var Signals = {};
+											
+   
+   function StopScan() {										// sets cancel to 1 if Stop is clicked
+      cancel = 1
+   }
+   function ScanWifi() {
+      console.log(cancel)
+      const scanner = require('node-wifi-scanner');   							// start of code from https://www.npmjs.com/package/node-wifi-scanner 
+      scanner.scan((err, networks) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+	console.log(networks);  // displays all WIFI 							// end of code from https://www.npmjs.com/package/node-wifi-scanner 
+
+
+										// Passes the networks array to the SignalsData function
+	
+	
+	var nets = [];											// creation of new array to hold data we want to use from the networks array
+        arrayLength = networks.length								// loops through the network array, pulling out and displaying the SSID for each network inside the console
+        for (var i = 0; i < arrayLength; i++) {
+          // document.write(networks[i].ssid, networks[i].rssi); 					// outputs SSID value in console of each element in networks array
+           nets[i] = "SSID: " + networks[i].ssid + " - " + networks[i].mac + " - " + "Signal strength" + networks[i].rssi + '<br />';
+	   // alert(nets.join("%"));
+           
+	      document.getElementById("scanner").innerHTML=nets						// updates the part of the HTML after the Scanner header, with the text from the Nets array created. Lists the SSID and RSSI of scanned networks
+	      	
+        }
+
+    	
+      
+
+      if (cancel == 0) {										// if cancel value is 0, the stop button hasnt been clicked, so continue to loop every second
+         SignalData(networks)	
+	 setTimeout(ScanWifi, 5000);   									// Repeats the Scan function every 1000 miliseconds (1 second)  
+         }
+      if (cancel == 1) {										// Resets the state of the scanner function, so if the start button is clicked the stop button doesnt overwrite its loop function
+         cancel = 0 											// The stop button has been clicked, stopping the loop. To allow the loop to function correctly if the start button is pressed, the value is reset.
+         }
+      })
+   };
+
+   
+
+
+
+
+
+
+   function SignalData(arr) {							//passes the networks array into this method. arr tells the function that the parameter passed is an array
+	console.log("COUNTER " + counter)
+	
+  	//for (i=0; i < arr.length; i++) {
+    		//console.log(arr[i])
+  	//}
+
+	
+	console.log(arr)
+
+	if (counter == 0) {							// Checks to see if the Signals array already exists or is empty
+		ArrayExists = false;
+        }
+	if (counter > 0) {
+		ArrayExists = true;
+
+	}
+
+	console.log(ArrayExists)	
+
+	if (ArrayExists == true) {
+		for (var i = 0; i < arr.length; i++) {								// Creates a new array of 5 elements for each signal recived (If there are 20 networks found, 20 arrays etc.)
+			//Signals[i] = new Array()
+
+			console.log("Where in my array " + Signals[i].indexOf(arr[i].ssid))
+			if (Signals[i].indexOf(arr[i].ssid) > -1 && Signals[i].indexOf(arr[i].mac)) {		//if the SSID and MAC address of the networks array are in the signals array, push the RSSI relating to that network inside SIGNALS array
+				console.log("SSID" + Signals[i].indexOf(arr[i].ssid))				//display where the SSID is within the array (should be 0 for each array as its the 1st value)
+				console.log("MAC: " + arr[i].mac + Signals[i].indexOf(arr[i].mac))		//display where the MAC is within the array (should be 1 for each array as its the 2nd value)
+				console.log(Signals[i][0])
+				console.log(Signals[i][1])
+				console.log("In Nets Array")
+				Signals[i].push(arr[i].rssi);
+					
+			}
+			else {
+				console.log("Not in Nets Array")
+				for (var i = Signals.length; i < arr.length; i++) {								// Creates a new array of 5 elements for each signal recived (If there are 20 networks found, 20 arrays etc.)
+					Signals[i] = new Array()								// The elments will later be used to store 5 RSSI, to calulate estimate location of signal origin.
+					Signals[i].push(arr[i].ssid);
+					Signals[i].push(arr[i].mac);
+					Signals[i].push(arr[i].rssi);
+				}
+			}
+
+			//console.log("Length = " + arr.length)
+			//Signals[i].push(arr[i].rssi);
+			//console.log("TEST" + arr[i].rssi)
+
+		}	
+	}
+	if (ArrayExists == false) { 
+		Signals = new Array()									// JS doesnt support Multi-dimensional arrays http://www.exforsys.com/tutorials/javascript/javascript-two-dimensional-arrays.html
+		for (var i = 0; i < arr.length; i++) {								// Creates a new array of 5 elements for each signal recived (If there are 20 networks found, 20 arrays etc.)
+			Signals[i] = new Array()								// The elments will later be used to store 5 RSSI, to calulate estimate location of signal origin.
+			Signals[i].push(arr[i].ssid);
+			Signals[i].push(arr[i].mac);
+			Signals[i].push(arr[i].rssi);
+			ArrayExists = true 
+			//Signals[i].push(arr[i].ssid);
+		}
+	
+	}
+	
+
+// NEED TO SEARCH THE Networks ARRAY and Signals ARRAY BY SSID+MAC TO FIND ELEMENT IN ARRAY THAT NEEDS TO BE ALTERED, ELSE THE DATA STORED DOES NOT MATCH UPTO THE CORRECT NETWORK.
+
+
+
+
+
+	console.log(Signals)
+
+
+	counter = counter + 1
+
+
+   }
+
+
+	
+   </script></div>
+
+
+
+
+
+
+
+   <script> 
+
+   wigle_username = 'AID3c3403094b7a839e2ca3eb942f432d20'    //located from https://wigle.net/account
+   wigle_password = '08df27f6bccd0fd125140ebfbc5eebc3'
+
+
+
+   </script>
+
+
+
+
+
+
+
+
+
+
+   <script>
+   
+
+
+
+   </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
